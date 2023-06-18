@@ -27,14 +27,14 @@ def read_image(filepath):
 def resize_image(image, image_size):
     return cv2.resize(image.copy(), image_size, interpolation=cv2.INTER_AREA)
 
-def clear_mediadir():
+def clear_media():
     media_dir = "./media"
     for f in os.listdir(media_dir):
         os.remove(os.path.join(media_dir, f))
 
 def index(request):
     if request.method == "POST" :
-        clear_mediadir() 
+        clear_media() 
         
         try:
             img = request.FILES['ImgFile']
@@ -54,41 +54,44 @@ def index(request):
         
         pred_arr = pred_arr/255
         
-        vgg_start = time.time()
+        
         with open(vgg16_json, 'r') as vggjson:
             vgg16model = model_from_json(vggjson.read())
 
         vgg16model.load_weights(vgg16_model)
         #vgg16model = h5py.File(vgg16_model, 'r')
-
+        vgg_start = time.time()
         label_vgg = vgg16model.predict(pred_arr)
+        vgg_end = time.time()
         idx_vgg = np.argmax(label_vgg[0])
         cf_score_vgg = np.amax(label_vgg[0])
-        vgg_end = time.time()
-
+        
+        
         vgg_exec = vgg_end  - vgg_start
 
-        resnet_start = time.time()
+        
         with open(resnet_json, 'r') as resnetjson:
             resnetmodel = model_from_json(resnetjson.read())
 
         resnetmodel.load_weights(resnet_model)
+        resnet_start = time.time()
         label_resnet = resnetmodel.predict(pred_arr)
+        resnet_end = time.time()
         idx_resnet = np.argmax(label_resnet[0])
         cf_score_resnet = np.amax(label_resnet[0])
-        resnet_end = time.time()
 
         resnet_exec = resnet_end - resnet_start
 
-        xception_start = time.time()
+        
         with open(xception_json, 'r') as xceptionjson:
             xceptionmodel = model_from_json(xceptionjson.read())
 
         xceptionmodel.load_weights(xception_model)
+        xception_start = time.time()
         label_xception = xceptionmodel.predict(pred_arr)
+        xception_end = time.time()
         idx_xception = np.argmax(label_xception[0])
         cf_score_xception = np.amax(label_xception[0])
-        xception_end = time.time()
 
         xception_exec = xception_end - xception_start
 
